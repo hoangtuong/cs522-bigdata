@@ -1,9 +1,6 @@
-package mum.cs.bigdata;
+package mum.cs.bigdata.average;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
@@ -14,14 +11,15 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 
-public class InMapperWordCount extends Configured implements Tool {
+public class AverageComputation extends Configured implements Tool {
 
 	public static void main(String[] args) throws Exception {
-		int res = ToolRunner.run(new InMapperWordCount(), args);
+		int res = ToolRunner.run(new AverageComputation(), args);
 		System.exit(res);
 	}
 
@@ -38,41 +36,42 @@ public class InMapperWordCount extends Configured implements Tool {
 	}
 	
 	public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
-		private final static IntWritable one = new IntWritable(1);
 	    private Text word = new Text();
-
+	    
 	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 	        String line = value.toString();
-	        StringTokenizer tokenizer = new StringTokenizer(line);
-	        HashMap<Text, IntWritable> map = new HashMap<Text, IntWritable>();
+	        String[] strs = line.split(" ");
 	        
-	        while (tokenizer.hasMoreTokens()) {
-	            word.set(tokenizer.nextToken());
-	            
-	            if (!map.containsKey(word)) {
-	            	map.put(word, one);
-	            } else {
-	            	IntWritable val = map.get(word);
-	            	val.set(val.get() + 1);
-	            	map.put(word, val);
-	            }
-	        }
-	        
-	        for (Entry<Text, IntWritable> entry : map.entrySet()) {
-            	context.write(entry.getKey(), entry.getValue());
+	        if (strs.length > 1) {
+	        	String ipString = strs[0];
+	        	String capacity = strs[strs.length-1];
+	        	
+	        	System.out.println("IP: " + ipString + ": " + capacity);
+	        	
+	        	try {
+	        		int number = Integer.parseInt(capacity);
+		        	word.set(ipString);
+		        	context.write(word, new IntWritable(number));
+
+	        	} catch(NumberFormatException ex) {
+	        		
+	        	}
 	        }
 	    }
 	}
 	
-	public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
+	public static class Reduce extends Reducer<Text, IntWritable, Text, DoubleWritable> {
 		@Override
 		public void reduce(Text word, Iterable<IntWritable> counts, Context context)
 				throws IOException, InterruptedException {
 			int sum = 0;
+			int cnt = 0;
+			
 			for (IntWritable count : counts) {
 				sum += count.get();
+				cnt ++;
 			}
-			context.write(word, new IntWritable(sum));
+			context.write(word, new DoubleWritable(sum/(cnt*1.0)));
 		}
 	}
 }

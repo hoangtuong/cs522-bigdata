@@ -1,4 +1,4 @@
-package mum.cs.bigdata;
+package mum.cs.bigdata.wordcount;
 
 import java.io.IOException;
 import java.util.StringTokenizer;

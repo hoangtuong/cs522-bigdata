@@ -1,4 +1,4 @@
-package mum.cs.bigdata;
+package mum.cs.bigdata.frequency;
 
 import java.io.IOException;
 
