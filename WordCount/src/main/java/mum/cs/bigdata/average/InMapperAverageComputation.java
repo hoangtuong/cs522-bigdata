@@ -3,7 +3,6 @@ package mum.cs.bigdata.average;
 import java.io.IOException;
 
 import mum.cs.bigdata.utils.IntPairWritable;
-import mum.cs.bigdata.wordcount.WordCount;
 
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.util.Tool;
@@ -17,11 +16,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.log4j.Logger;
 
-public class InMapperAverageComputation extends Configured implements Tool {
-	private static final Logger logger = Logger.getLogger(WordCount.class);
-	
+public class InMapperAverageComputation extends Configured implements Tool {	
 	public static void main(String[] args) throws Exception {
 		int res = ToolRunner.run(new InMapperAverageComputation(), args);
 		System.exit(res);
@@ -52,13 +48,10 @@ public class InMapperAverageComputation extends Configured implements Tool {
 	        	String ipString = strs[0];
 	        	String capacity = strs[strs.length-1];
 	        	
-	        	logger.info("InMapperAverageComputation.Mapper");
-	        	
 	        	try {
 	        		int number = Integer.parseInt(capacity);
 		        	word.set(ipString);
 		        	IntPairWritable pair = new IntPairWritable(number, 1);
-		        	logger.info("\n<" + word + ", ( " + pair.getFirst() + ", " + pair.getSecond() + ")>");
 		        	context.write(word, pair);
 	        	} catch(NumberFormatException ex) {
 	        		
@@ -88,10 +81,7 @@ public class InMapperAverageComputation extends Configured implements Tool {
 			int sum = 0;
 			int cnt = 0;
 			
-			logger.info("InMapperAverageComputation.Reducer");
-			
 			for (IntPairWritable pair : pairs) {
-				logger.info("\n<" + word + ", ( " + pair.getFirst() + ", " + pair.getSecond() + ")>");
 				sum += pair.getFirst();
 				cnt += pair.getSecond();
 			}

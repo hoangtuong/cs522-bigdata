@@ -36,7 +36,7 @@ public class WordCount extends Configured implements Tool {
 	}
 	
 	public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
-		private final static IntWritable one = new IntWritable(1);
+		private final static IntWritable ONE = new IntWritable(1);
 	    private Text word = new Text();
 
 	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -44,7 +44,7 @@ public class WordCount extends Configured implements Tool {
 	        StringTokenizer tokenizer = new StringTokenizer(line);
 	        while (tokenizer.hasMoreTokens()) {
 	            word.set(tokenizer.nextToken());
-	            context.write(word, one);
+	            context.write(word, ONE);
 	        }
 	    }
 	}

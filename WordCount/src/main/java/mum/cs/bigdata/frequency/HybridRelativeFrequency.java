@@ -61,7 +61,6 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 	        	while (j < words.length && !words[j].equals(words[i]) ) {
 	        		u = words[j];
 		        	if (u.trim().length() > 0 && w.trim().length() > 0 && !u.equals(w)) {
-		        		//context.write(new StringPairWritable(w, u), ONE);
 		        		StringPairWritable pair = new StringPairWritable(w, u);
 		        		if (!map.containsKey(pair)) {
 		        			map.put(pair, ONE);
