@@ -1,4 +1,0 @@
-Execution time
-Pair: 30.442987602 seconds
-Stripe: 32.406714393 seconds
-Hybrid: 32.965912607 seconds
