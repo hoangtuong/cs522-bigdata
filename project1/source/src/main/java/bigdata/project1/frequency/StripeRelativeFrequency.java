@@ -1,6 +1,9 @@
 package bigdata.project1.frequency;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configured;
@@ -41,50 +44,76 @@ public class StripeRelativeFrequency extends Configured implements Tool {
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
-	public static class Map extends
-			Mapper<LongWritable, Text, Text, MapWritable> {
-		private final static IntWritable one = new IntWritable(1);
+	public static class Map extends Mapper<LongWritable, Text, Text, MapWritable> {
+		private HashMap<String, HashMap<String, Integer>> G = new HashMap<String,HashMap<String, Integer>>();
 
-		public void map(LongWritable key, Text value, Context context)
-				throws IOException, InterruptedException {
+		@Override
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String line = value.toString();
-			String[] words = line.split(" ");
-
-			String w;
-			String u;
+			List<String> wordList = Arrays.asList(line.split(" "));
+			wordList.removeAll(Arrays.asList(""));
+			String[] words = wordList.toArray(new String[0]);
+			String w, u;
+			
 			for (int i = 0; i < words.length; i++) {
-				MapWritable map = new MapWritable();
-
+				HashMap<String, Integer> H = new HashMap<String, Integer>();
 				w = words[i];
 				int j = i + 1;
+				
 				while (j < words.length && !words[j].equals(words[i])) {
 					u = words[j];
-
-					Text pairKey = new Text(u);
-					if (u.trim().length() > 0 && w.trim().length() > 0
-							&& !u.equals(w)) {
-						if (map.containsKey(pairKey)) {
-							IntWritable val = (IntWritable) map.get(pairKey);
-							map.put(pairKey, new IntWritable(val.get() + 1));
-						} else {
-							map.put(pairKey, one);
-						}
-					}
+					elementWiseIncrease(H, u);
 					j++;
 				}
-
-				if (w.trim().length() > 0 && !map.isEmpty()) {
-					context.write(new Text(w), map);
+				
+				elementWiseSum(G, H, w);
+			}
+		}
+		
+		@Override
+		protected void cleanup(Context context) throws IOException, InterruptedException {
+			for (Entry<String, HashMap<String, Integer>> entry : G.entrySet()) {
+				HashMap<String, Integer> value = entry.getValue();
+				
+				MapWritable map = new MapWritable();
+				for (Entry<String, Integer> e : value.entrySet()) { 
+					map.put(new Text(e.getKey()), new IntWritable(e.getValue()));
 				}
+				
+				context.write(new Text(entry.getKey()), map);
+			}
+		}
+		
+		private void elementWiseIncrease(HashMap<String, Integer> map, String key) {
+			if (map.containsKey(key)) {
+				map.put(key, map.get(key) + 1);
+			} else {
+				map.put(key, 1);
+			}
+		}
+		
+		private void elementWiseSum(HashMap<String, HashMap<String, Integer>> to, HashMap<String, Integer> from, String key) {
+			if (!to.containsKey(key)) {
+				G.put(key, from);
+			} else {
+				HashMap<String, Integer> map = to.get(key);
+				
+				for (Entry<String, Integer> fromEntry : from.entrySet()) {
+					String k = fromEntry.getKey();
+
+					if (!map.containsKey(k)) {
+						map.put(k, fromEntry.getValue());
+					} else {
+						map.put(k, fromEntry.getValue() + map.get(k));
+					}
+				}				
 			}
 		}
 	}
 
-	public static class Reduce extends
-			Reducer<Text, MapWritable, Text, StringDoubleMapWritable> {
+	public static class Reduce extends Reducer<Text, MapWritable, Text, StringDoubleMapWritable> {
 		@Override
-		public void reduce(Text word, Iterable<MapWritable> stripes,
-				Context context) throws IOException, InterruptedException {
+		public void reduce(Text word, Iterable<MapWritable> stripes, Context context) throws IOException, InterruptedException {
 			StringDoubleMapWritable map = new StringDoubleMapWritable();
 
 			for (MapWritable stripe : stripes) {

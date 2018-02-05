@@ -1,6 +1,8 @@
 package bigdata.project1.frequency;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configured;
@@ -45,32 +47,28 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
 
-	public static class Map extends
-			Mapper<LongWritable, Text, StringPairWritable, IntWritable> {
+	public static class Map extends Mapper<LongWritable, Text, StringPairWritable, IntWritable> {
 		private final static IntWritable ONE = new IntWritable(1);
-		private MapWritable map = new MapWritable();
+		private MapWritable H = new MapWritable();
 
-		public void map(LongWritable key, Text value, Context context)
-				throws IOException, InterruptedException {
+		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String line = value.toString();
-			String[] words = line.split(" ");
-
-			String w;
-			String u;
+			List<String> wordList = Arrays.asList(line.split(" "));
+			wordList.removeAll(Arrays.asList(""));
+			String[] words = wordList.toArray(new String[0]);
+			String w, u;
+			
 			for (int i = 0; i < words.length; i++) {
 				w = words[i];
 				int j = i + 1;
 				while (j < words.length && !words[j].equals(words[i])) {
 					u = words[j];
-					if (u.trim().length() > 0 && w.trim().length() > 0
-							&& !u.equals(w)) {
-						StringPairWritable pair = new StringPairWritable(w, u);
-						if (!map.containsKey(pair)) {
-							map.put(pair, ONE);
-						} else {
-							int val = ((IntWritable) map.get(pair)).get() + 1;
-							map.put(pair, new IntWritable(val));
-						}
+					StringPairWritable pair = new StringPairWritable(w, u);
+					if (!H.containsKey(pair)) {
+						H.put(pair, ONE);
+					} else {
+						int val = ((IntWritable) H.get(pair)).get() + 1;
+						H.put(pair, new IntWritable(val));
 					}
 					j++;
 				}
@@ -78,26 +76,20 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 		}
 
 		@Override
-		public void cleanup(Context context) throws IOException,
-				InterruptedException {
-			for (Writable key : map.keySet()) {
+		public void cleanup(Context context) throws IOException, InterruptedException {
+			for (Writable key : H.keySet()) {
 				StringPairWritable pair = (StringPairWritable) key;
-				context.write(pair, (IntWritable) map.get(pair));
+				context.write(pair, (IntWritable) H.get(pair));
 			}
 		}
 	}
 
-	public static class Reduce
-			extends
-			Reducer<StringPairWritable, IntWritable, Text, StringDoubleMapWritable> {
+	public static class Reduce extends Reducer<StringPairWritable, IntWritable, Text, StringDoubleMapWritable> {
 		private Text prev = null;
 		private StringDoubleMapWritable map = new StringDoubleMapWritable();
 
 		@Override
-		public void reduce(StringPairWritable pair,
-				Iterable<IntWritable> counts, Context context)
-				throws IOException, InterruptedException {
-
+		public void reduce(StringPairWritable pair, Iterable<IntWritable> counts, Context context) throws IOException, InterruptedException {
 			Text w = new Text(pair.getLeft());
 			Text u = new Text(pair.getRight());
 
@@ -105,16 +97,14 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 				// Calculate total on map
 				int total = 0;
 				for (Entry<Writable, Writable> entry : map.entrySet()) {
-					DoubleWritable val = (DoubleWritable) map.get(entry
-							.getKey());
+					DoubleWritable val = (DoubleWritable) map.get(entry.getKey());
 					total += val.get();
 				}
 
 				// Calculate average
 				for (Entry<Writable, Writable> entry : map.entrySet()) {
 					double val = ((DoubleWritable) entry.getValue()).get();
-					map.put(entry.getKey(), new DoubleWritable(val * 1.0
-							/ total));
+					map.put(entry.getKey(), new DoubleWritable((float)val/total));
 				}
 
 				context.write(prev, map);
