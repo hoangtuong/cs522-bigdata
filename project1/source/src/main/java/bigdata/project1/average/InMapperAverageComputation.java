@@ -49,10 +49,10 @@ public class InMapperAverageComputation extends Configured implements Tool {
 			if (strs.length < 1) return;
 			
 			String ipString = strs[0];
-			String capacity = strs[strs.length - 1];
+			String responseSize = strs[strs.length - 1];
 
 			try {
-				int number = Integer.parseInt(capacity);
+				int number = Integer.parseInt(responseSize);
 				if (!H.containsKey(ipString)) {
 					H.put(ipString, new Pair<Integer, Integer>(number, 1));
 				} else {
