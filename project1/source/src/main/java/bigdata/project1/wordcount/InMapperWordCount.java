@@ -50,13 +50,11 @@ public class InMapperWordCount extends Configured implements Tool {
 			while (matcher.find()) {
 				String w = matcher.group().toLowerCase();
 
-				if (!w.contains(".")) {
-					if (!H.containsKey(w)) {
-						H.put(w, 1);
-					} else {
-						int val = H.get(w);
-						H.put(w, val + 1);
-					}
+				if (!H.containsKey(w)) {
+					H.put(w, 1);
+				} else {
+					int val = H.get(w);
+					H.put(w, val + 1);
 				}
 			}
 		}
