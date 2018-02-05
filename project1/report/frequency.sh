@@ -11,17 +11,12 @@ hadoop fs -put input/frequency/* /user/cloudera/frequency/input
 rm -rf output/frequency
 mkdir output output/frequency
 
-# Run Pair
-hadoop fs -rm -r /user/cloudera/frequency/output
-hadoop jar project1.jar bigdata.project1.frequency.PairRelativeFrequency /user/cloudera/frequency/input /user/cloudera/frequency/output
-hadoop fs -cat /user/cloudera/frequency/output/* > output/frequency/pair.out.txt
+# Run Pair script
+sh ./frequency_pair.sh
 
-# Run Stripe
-hadoop fs -rm -r /user/cloudera/frequency/output
-hadoop jar project1.jar bigdata.project1.frequency.StripeRelativeFrequency /user/cloudera/frequency/input /user/cloudera/frequency/output
-hadoop fs -cat /user/cloudera/frequency/output/* > output/frequency/stripe.out.txt
+# Run Stripe script
+sh ./frequency_stripe.sh
 
 # Run Hybrid
-hadoop fs -rm -r /user/cloudera/frequency/output
-hadoop jar project1.jar bigdata.project1.frequency.HybridRelativeFrequency /user/cloudera/frequency/input /user/cloudera/frequency/output
-hadoop fs -cat /user/cloudera/frequency/output/* > output/frequency/hybrid.out.txt
+sh ./frequency_hybrid.sh
+

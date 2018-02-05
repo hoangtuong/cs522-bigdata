@@ -2,6 +2,7 @@ package bigdata.project1.frequency;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -17,10 +18,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.MapWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 
+import bigdata.project1.utils.Pair;
 import bigdata.project1.utils.StringDoubleMapWritable;
 import bigdata.project1.utils.StringPairWritable;
 
@@ -48,8 +49,7 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 	}
 
 	public static class Map extends Mapper<LongWritable, Text, StringPairWritable, IntWritable> {
-		private final static IntWritable ONE = new IntWritable(1);
-		private MapWritable H = new MapWritable();
+		private HashMap<Pair<String, String>, Integer> H = new HashMap<Pair<String, String>, Integer>();
 
 		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 			String line = value.toString();
@@ -63,12 +63,11 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 				int j = i + 1;
 				while (j < words.length && !words[j].equals(words[i])) {
 					u = words[j];
-					StringPairWritable pair = new StringPairWritable(w, u);
+					Pair<String, String> pair = new Pair<String, String>(w, u);
 					if (!H.containsKey(pair)) {
-						H.put(pair, ONE);
+						H.put(pair, 1);
 					} else {
-						int val = ((IntWritable) H.get(pair)).get() + 1;
-						H.put(pair, new IntWritable(val));
+						H.put(pair, H.get(pair)+1);
 					}
 					j++;
 				}
@@ -77,9 +76,9 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 
 		@Override
 		public void cleanup(Context context) throws IOException, InterruptedException {
-			for (Writable key : H.keySet()) {
-				StringPairWritable pair = (StringPairWritable) key;
-				context.write(pair, (IntWritable) H.get(pair));
+			for (Pair<String, String> key : H.keySet()) {
+				StringPairWritable pair = new StringPairWritable(key.getLeft(), key.getRight());
+				context.write(pair, new IntWritable(H.get(key)));
 			}
 		}
 	}
@@ -133,7 +132,7 @@ public class HybridRelativeFrequency extends Configured implements Tool {
 			// Calculate average
 			for (Entry<Writable, Writable> entry : map.entrySet()) {
 				double val = ((DoubleWritable) entry.getValue()).get();
-				map.put(entry.getKey(), new DoubleWritable(val * 1.0 / total));
+				map.put(entry.getKey(), new DoubleWritable((float) val/total));
 			}
 
 			context.write(prev, map);
