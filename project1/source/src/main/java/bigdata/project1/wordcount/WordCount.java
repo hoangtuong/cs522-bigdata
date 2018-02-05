@@ -1,4 +1,4 @@
-package mum.cs.bigdata.wordcount;
+package bigdata.project1.wordcount;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -35,31 +35,34 @@ public class WordCount extends Configured implements Tool {
 		job.setOutputValueClass(IntWritable.class);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
-	
-	public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
+
+	public static class Map extends
+			Mapper<LongWritable, Text, Text, IntWritable> {
 		// Regular expression to find a valid word
-	    private static String WORD_REGEX = "\\b[^\\d\\r\\n|\\r_ -]+\\b";
+		private static String WORD_REGEX = "\\b[^\\d\\r\\n|\\r_ -]+\\b";
 		private final static IntWritable ONE = new IntWritable(1);
 
-	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	        String line = value.toString();
-	        Pattern pattern = Pattern.compile(WORD_REGEX);
-	        Matcher matcher = pattern.matcher(line);
-
-	        while (matcher.find()) {
-	            String word = matcher.group();
-
-	            if (!word.contains(".")) {
-	                context.write(new Text(word.toLowerCase()), ONE);
-	            }
-	        }
-	    }
-	}
-	
-	public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
-		@Override
-		public void reduce(Text word, Iterable<IntWritable> counts, Context context)
+		public void map(LongWritable key, Text value, Context context)
 				throws IOException, InterruptedException {
+			String line = value.toString();
+			Pattern pattern = Pattern.compile(WORD_REGEX);
+			Matcher matcher = pattern.matcher(line);
+
+			while (matcher.find()) {
+				String word = matcher.group();
+
+				if (!word.contains(".")) {
+					context.write(new Text(word.toLowerCase()), ONE);
+				}
+			}
+		}
+	}
+
+	public static class Reduce extends
+			Reducer<Text, IntWritable, Text, IntWritable> {
+		@Override
+		public void reduce(Text word, Iterable<IntWritable> counts,
+				Context context) throws IOException, InterruptedException {
 			int sum = 0;
 			for (IntWritable count : counts) {
 				sum += count.get();

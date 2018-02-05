@@ -1,4 +1,4 @@
-package mum.cs.bigdata.average;
+package bigdata.project1.average;
 
 import java.io.IOException;
 
@@ -34,44 +34,47 @@ public class AverageComputation extends Configured implements Tool {
 		job.setOutputValueClass(IntWritable.class);
 		return job.waitForCompletion(true) ? 0 : 1;
 	}
-	
-	public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
-	    private Text word = new Text();
-	    
-	    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-	        String line = value.toString();
-	        String[] strs = line.split(" ");
-	        
-	        if (strs.length > 1) {
-	        	String ipString = strs[0];
-	        	String capacity = strs[strs.length-1];
-	        	
-	        	System.out.println("IP: " + ipString + ": " + capacity);
-	        	
-	        	try {
-	        		int number = Integer.parseInt(capacity);
-		        	word.set(ipString);
-		        	context.write(word, new IntWritable(number));
 
-	        	} catch(NumberFormatException ex) {
-	        		
-	        	}
-	        }
-	    }
-	}
-	
-	public static class Reduce extends Reducer<Text, IntWritable, Text, DoubleWritable> {
-		@Override
-		public void reduce(Text word, Iterable<IntWritable> counts, Context context)
+	public static class Map extends
+			Mapper<LongWritable, Text, Text, IntWritable> {
+		private Text word = new Text();
+
+		public void map(LongWritable key, Text value, Context context)
 				throws IOException, InterruptedException {
+			String line = value.toString();
+			String[] strs = line.split(" ");
+
+			if (strs.length > 1) {
+				String ipString = strs[0];
+				String capacity = strs[strs.length - 1];
+
+				System.out.println("IP: " + ipString + ": " + capacity);
+
+				try {
+					int number = Integer.parseInt(capacity);
+					word.set(ipString);
+					context.write(word, new IntWritable(number));
+
+				} catch (NumberFormatException ex) {
+
+				}
+			}
+		}
+	}
+
+	public static class Reduce extends
+			Reducer<Text, IntWritable, Text, DoubleWritable> {
+		@Override
+		public void reduce(Text word, Iterable<IntWritable> counts,
+				Context context) throws IOException, InterruptedException {
 			int sum = 0;
 			int cnt = 0;
-			
+
 			for (IntWritable count : counts) {
 				sum += count.get();
-				cnt ++;
+				cnt++;
 			}
-			context.write(word, new DoubleWritable(sum/(cnt*1.0)));
+			context.write(word, new DoubleWritable(sum / (cnt * 1.0)));
 		}
 	}
 }
