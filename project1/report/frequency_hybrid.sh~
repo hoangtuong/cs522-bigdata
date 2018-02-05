@@ -2,10 +2,21 @@
 
 set -x
 
-# Create output folder on local machine
+# Remove output files on both local and HDFS (if existed)
 rm -rf output/frequency/hybrid.out.txt
-
-# Run Hybrid
 hadoop fs -rm -r /user/cloudera/frequency/output
+
+# For execution time measument
+start=$(date +%s.%N)
+
+# Run Hybrid Approach algorithms
 hadoop jar project1.jar bigdata.project1.frequency.HybridRelativeFrequency /user/cloudera/frequency/input /user/cloudera/frequency/output
+
+duration=$(echo "$(date +%s.%N) - $start" | bc)
+printf "Execution time: %.6f seconds" $duration
+echo "Hybrid: $duration" >> output/time.out.txt
+
+
+# Cat output from HDFS to local file
 hadoop fs -cat /user/cloudera/frequency/output/* > output/frequency/hybrid.out.txt
+

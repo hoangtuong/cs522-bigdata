@@ -1,0 +1,3 @@
+Pair: 31.816069184 seconds
+Stripe: 33.154125348 seconds
+Hybrid: 30.922806180 seconds
