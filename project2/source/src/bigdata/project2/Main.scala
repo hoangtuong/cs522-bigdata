@@ -1,12 +1,9 @@
-package bigdata.loganalyzer
+package bigdata.project2
 
 import java.io._
-import java.nio.file.Files
-import java.nio.file.Paths
-import scala.io.Source
-import scala.math.random
 import org.apache.spark._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd.RDD.rddToOrderedRDDFunctions
 
 object Main extends App {
   override def main(args: Array[String]) {

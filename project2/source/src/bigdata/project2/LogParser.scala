@@ -1,4 +1,4 @@
-package bigdata.loganalyzer
+package bigdata.project2
 
 import java.util.Date
 import java.text.SimpleDateFormat
