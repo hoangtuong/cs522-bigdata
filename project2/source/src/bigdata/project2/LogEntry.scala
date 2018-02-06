@@ -10,7 +10,7 @@ case class LogEntry(
     userId: String,
     datetime: Date,
     requestMethod: String,
-    requestResource: String,
+    resourcePath: String,
     httpProtocol: String,
     responeStatus: Int,
     responseSize: Long
