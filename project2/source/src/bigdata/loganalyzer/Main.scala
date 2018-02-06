@@ -34,7 +34,7 @@ object Main extends App {
     val averagePerIP = getAverageResponseSize(logEntries)
 
     // Write the result to file
-    val writer = new PrintWriter(new File("average.out.txt"))
+    val writer = new PrintWriter(new File("output/average.out.txt"))
     averagePerIP.foreach(writer.println)
     writer.close()
   }
